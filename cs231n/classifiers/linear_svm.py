@@ -26,10 +26,10 @@ def svm_loss_naive(W, X, y, reg):
   num_classes = W.shape[1]
   num_train = X.shape[0]
   loss = 0.0
-  for i in xrange(num_train):
+  for i in xrange(num_train): #train data points
     scores = X[i].dot(W)
     correct_class_score = scores[y[i]]
-    for j in xrange(num_classes):
+    for j in xrange(num_classes): # number of classes
       if j == y[i]:
         continue
       margin = scores[j] - correct_class_score + 1 # note delta = 1
@@ -44,8 +44,8 @@ def svm_loss_naive(W, X, y, reg):
   dW /= num_train
 
   # Add regularization to the loss.
-  loss += reg * np.sum(W * W)
-  dW += 2*reg * W
+  loss +=0.5 *  reg * np.sum(W * W)
+  dW += reg * W
 
   #############################################################################
   # TODO:                                                                     #
@@ -59,7 +59,7 @@ def svm_loss_naive(W, X, y, reg):
 
   return loss, dW
 
-
+import sys
 def svm_loss_vectorized(W, X, y, reg):
   """
   Structured SVM loss function, vectorized implementation.
@@ -71,7 +71,8 @@ def svm_loss_vectorized(W, X, y, reg):
   dW = np.zeros(W.shape) # initialize the gradient as zero
 
   scores = X.dot(W) #scores of all data in all classes
-  margin = scores - scores[range(num_example), y] + np.ones(scores.shape) #lossK = max(0, score[i] - score[yk] + 1)
+  y_scores = scores[range(num_example), y ]
+  margin = scores - y_scores [:, np.newaxis] + np.ones(scores.shape) #lossK = max(0, score[i] - score[yk] + 1
   margin[margin < 0 ] = 0 
   data_loss  =np.sum(margin) - num_example
   data_loss /= num_example
@@ -88,12 +89,17 @@ def svm_loss_vectorized(W, X, y, reg):
   #                             END OF YOUR CODE                              #
   #############################################################################
 
-
-  t_margin = margin
-  t_margin[t_margin > 0 ] = 1
-  dmargin = t_margin
-  dscores = dmargin
+  
+  mask = margin
+  mask [margin > 0 ] = 1
+  mask [range(num_example), y ] = 0 
+  #dmargin = np.sum(t_margin) 
+  dy_scores = np.ones(scores.shape)
+  dscores = dy_scores * mask
+  dscores [range(num_example), y ] = -np.sum(mask, axis = 1)
   dW = X.T.dot(dscores)
+  dW /= num_example
+  dW +=reg * W
 
   #############################################################################
   # TODO:                                                                     #
